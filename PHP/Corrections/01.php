@@ -1,0 +1,3 @@
+<?php
+// Un commentaire
+?>
