@@ -25,7 +25,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
       - [3. RestaurantPicture: `bin/console make:entity RestaurantPicture`](#3-restaurantpicture-binconsole-makeentity-restaurantpicture)
       - [4. Review: `bin/console make:entity Review`](#4-review-binconsole-makeentity-review)
     - [Création des relations](#cr%c3%a9ation-des-relations)
-      - [**Description des questions d'une relation :**](#description-des-questions-dune-relation)
+      - [Description des questions d'une relation](#description-des-questions-dune-relation)
       - [Exemple](#exemple)
   - [Exercice 7 - Faire les migrations](#exercice-7---faire-les-migrations)
   - [Exercice 8 - Créer les controllers et les routes](#exercice-8---cr%c3%a9er-les-controllers-et-les-routes)
@@ -303,7 +303,7 @@ RestaurantPicture | `restaurant` | `ManyToOne` | Restaurant | no | yes | `restau
 Review | `restaurant` | `ManyToOne` | Restaurant | no | yes | `reviews` | yes
 Review | `parent` | `ManyToOne` | Review | yes | yes | `childs` |
 
-#### **Description des questions d'une relation :**
+#### Description des questions d'une relation
 - `New property name (press <return> to stop adding fields):`
   - C'est le nouvel attribut que l'on ajoute à notre classe `Restaurant`. Ici : on ajoute un attribut `city` (**EN CAMEL CASE !!!! C'EST UN ATTRIBUT !**)
 
