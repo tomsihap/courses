@@ -233,30 +233,32 @@ git clean -i
 > 2. Github Desktop : clic droit sur `2 changed files` et `Discard changes`.
 
 #### 1. Restaurant: `bin/console make:entity Restaurant`
-Property name | Field type | Field length | Nullable ?
----------|----------|---------|---------
-`name` | `string` | `255` | `no`
-`description` | `text` | | `yes`
-`createdAt` | `datetime` | | `no`
+
+Property name | Field type | Field length | Nullable ? |
+---------|----------|---------|---------|
+`name` | `string` | `255` | `no` |
+`description` | `text` | | `yes` |
+`createdAt` | `datetime` | | `no` |
 
 #### 2. City: `bin/console make:entity City`
-Property name | Field type | Field length | Nullable ?
----------|----------|---------|---------
-`name` | `string` | `255` | `no`
-`zipcode` | `string` | `15` | `no`
+
+Property name | Field type | Field length | Nullable ? |
+---------|----------|---------|---------|
+`name` | `string` | `255` | `no` |
+`zipcode` | `string` | `15` | `no` |
 
 #### 3. RestaurantPicture: `bin/console make:entity RestaurantPicture`
-Property name | Field type | Field length | Nullable ?
----------|----------|---------|---------
+Property name | Field type | Field length | Nullable ? |
+---------|----------|---------|---------|
 
 > On ne remplit rien pour le moment ! On créée l'entité vide. On la remplira lorsqu'on gèrera l'upload d'images.
 
 #### 4. Review: `bin/console make:entity Review`
-Property name | Field type | Field length | Nullable ?
----------|----------|---------|---------
-`message` | `text` | | `yes`
-`rating` | `integer` | | `no`
-`createdAt` | `datetime` | | `no`
+Property name | Field type | Field length | Nullable ? |
+---------|----------|---------|---------|
+`message` | `text` | | `yes` |
+`rating` | `integer` | | `no` |
+`createdAt` | `datetime` | | `no` |
 
 ### Création des relations
 Les relations à créer seront :
@@ -362,8 +364,11 @@ Success!
 
 Next: When you're ready, create a migration with make:migration
 ```
+
 ## Exercice 7 - Faire les migrations
-> **Attention** : La base de données définie dans .env.local ne doit pas être encore crée (faite à la main par exeemple) !
+
+> **Attention** : La base de données définie dans .env.local ne doit pas être encore crée (faite à la main par exemple) !
+
 ```bash
 # Création de la base de données
 php bin/console doctrine:database:create
