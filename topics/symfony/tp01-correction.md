@@ -947,13 +947,6 @@ class AppController extends AbstractController
 Modifiez le Twig correspondant `app/index.html.twig` :
 
 ```html
-{% extends 'base.html.twig' %}
-
-{% block title %}Hello AppController!{% endblock %}
-
-{% block body %}
-
-
     <ul>
         {% for restaurant in restaurants %}
             <li>
@@ -963,9 +956,6 @@ Modifiez le Twig correspondant `app/index.html.twig` :
         {% endfor %}
 
     </ul>
-
-
-{% endblock %}
 ```
 
 Bien sûr, à vous d'adapter tout ce code avec du CSS ou Bootstrap !
