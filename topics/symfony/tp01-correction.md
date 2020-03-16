@@ -950,7 +950,7 @@ Modifiez le Twig correspondant `app/index.html.twig` :
     <ul>
         {% for restaurant in restaurants %}
             <li>
-                {{ restaurant.name }} <br>
+                {{"{{ restaurant.name }}" | escape}}  <br>
                 <small>{{ restaurant.description }}</small>
             </li>
         {% endfor %}
