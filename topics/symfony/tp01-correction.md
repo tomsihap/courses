@@ -34,6 +34,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
     - [Gestion des dépendances entre fixtures](#gestion-des-d%c3%a9pendances-entre-fixtures)
     - [Créer des fixtures !](#cr%c3%a9er-des-fixtures)
+    - [Afficher les restaurants en page d'accueil](#afficher-les-restaurants-en-page-daccueil)
 
 ## Exercice 1 - Créez le MLD
 D'après le brief du client, voici le MLD qui a été décidé :
@@ -908,3 +909,62 @@ bin/console doc:schema:create
 # Création des fixtures (validation automatique avec --no-interaction)
 bin/console doc:fixtures:load --no-interaction
 ```
+
+### Afficher les restaurants en page d'accueil
+
+Nous n'avons pas de page d'accueil ! Créons la tout de suite dans un AppController par exemple :
+
+```
+bin/console make:controller AppController
+```
+
+Modifiez le `AppController.php` créé pour créer une route de  page d'accueil, qui appelera un Twig à qui on enverra la liste des objets Restaurant :
+
+```php
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Restaurant;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
+
+class AppController extends AbstractController
+{
+    /**
+     * @Route("/", name="app_index", methods={"GET"})
+     */
+    public function index()
+    {
+        return $this->render('app/index.html.twig', [
+            'restaurants' => $this->getDoctrine()->getRepository(Restaurant::class)->findAll(),
+        ]);
+    }
+}
+```
+
+Modifiez le Twig correspondant `app/index.html.twig` :
+
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AppController!{% endblock %}
+
+{% block body %}
+
+
+    <ul>
+        {% for restaurant in restaurants %}
+            <li>
+                {{ restaurant.name }} <br>
+                <small>{{ restaurant.description }}</small>
+            </li>
+        {% endfor %}
+
+    </ul>
+
+
+{% endblock %}
+```
+
+Bien sûr, à vous d'adapter tout ce code avec du CSS ou Bootstrap !
