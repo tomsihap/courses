@@ -34,7 +34,6 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
     - [Gestion des dépendances entre fixtures](#gestion-des-d%c3%a9pendances-entre-fixtures)
     - [Créer des fixtures !](#cr%c3%a9er-des-fixtures)
-  - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
 
 ## Exercice 1 - Créez le MLD
 D'après le brief du client, voici le MLD qui a été décidé :
@@ -611,7 +610,6 @@ Pour cela, on dit à la fixture d'implémenter l'interface `DependantFixtureInte
 
 namespace App\DataFixtures;
 
-use App\Entity\Restaurant;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -629,7 +627,7 @@ class RestaurantPictureFixtures extends Fixture implements DependentFixtureInter
     public function getDependencies()
     {
         return array(
-            Restaurant::class,
+            RestaurantFixtures::class,
         );
     }
 }
@@ -642,7 +640,6 @@ class RestaurantPictureFixtures extends Fixture implements DependentFixtureInter
 
 namespace App\DataFixtures;
 
-use App\Entity\Restaurant;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -660,7 +657,7 @@ class ReviewFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            Restaurant::class,
+            RestaurantFixtures::class,
         );
     }
 }
@@ -675,7 +672,6 @@ Enfin, disons à RestaurantFixtures qu'il a besoin de CityFixtures pour fonction
 
 namespace App\DataFixtures;
 
-use App\Entity\City;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -693,10 +689,11 @@ class RestaurantFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return array(
-            City::class,
+            CityFixtures::class,
         );
     }
 }
+
 ```
 
 ### Créer des fixtures !
@@ -715,6 +712,9 @@ class CityFixtures extends Fixture
             $city = new City();
             $city->setName("Lyon");
             $city->setZipcode("69001");
+
+            $manager->persist($city);
+
         }
 
         $manager->flush();
@@ -722,28 +722,189 @@ class CityFixtures extends Fixture
 }
 ```
 
+Cool, 1000 villes seront créées ! Le souci... C'est qu'elles s'apelleront toutes "Lyon" et auront pour code postal "69001".
+
+Pour pallier à ce souci, nous allons installer Faker (https://github.com/fzaninotto/Faker) qui nous permettra d'avoir des chaînes de caractères aléatoires et cohérentes :
+
+```
+composer require fzaninotto/faker
+```
+
+Modifiez maintenant `CityFixtures`. Attention à bien importer la classe `Factory` (Faker/Factory) :
+
+```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\City;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
+
+class CityFixtures extends Fixture
+{
+    public function load(ObjectManager $manager)
+    {
+
+        $faker = Factory::create('fr_FR');
+
+        for ($i = 0; $i < 1000; $i++) {
+            $city = new City();
+            $city->setName( $faker->city );
+            $city->setZipcode( $faker->postcode );
+            
+            $manager->persist($city);
+        }
+
+        $manager->flush();
+    }
+}
+```
+
+On exécute les fixtures :
+
+```
+bin/console doctrine:fixtures:load
+```
+
+Validez `yes` lors de la question : le CLI vous indique que la base de  données va être vidée puis re-remplie par les fixtures.
+
+Une fois la commande exécutée, vérifiez dans PHPMyAdmin : ça y est, 1000 villes aux noms réalistes ont été créées !
+
+Maintenant que nos villes existent (de l'ID 1 à 1000), modifions maintenant `RestaurantFixtures` et `ReviewFixtures`. Petite différence : pour les clés étrangères, nous importerons le Repository correspondant. Par exemple, pour le `$restaurrant->setCity()` nous avons besoin d'un objet City en base de données, nous utilisons donc le `CityRepository` auquel on lui donnera un ID aléatoire entre 1 et 1000 (car il y a 1000 villes).
+
 `RestaurantFixtures.php` :
 
 ```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Restaurant;
+use App\Repository\CityRepository;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
+
+class RestaurantFixtures extends Fixture implements DependentFixtureInterface
+{
+    private $cityRepository;
+
+    public  function __construct(CityRepository $cityRepository) {
+        $this->cityRepository = $cityRepository;
+    }
+    public function load(ObjectManager $manager)
+    {
+        $faker = Factory::create('fr_FR');
+
+        for($i=0; $i < 1000; $i++) {
+
+            $restaurant = new Restaurant();
+            $restaurant->setName( $faker->company );
+            $restaurant->setDescription( $faker->text(500) );
+            $restaurant->setCity( $this->cityRepository->find( rand(1, 1000) ) );
+
+            $manager->persist($restaurant);
+        }
+
+        $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+        return array(
+            CityFixtures::class,
+        );
+    }
+}
+
 ```
 
-`ReviewFixtures.php` :
+On termine sur `ReviewFixtures` avant de rééxécuter toutes nos fixtures. Allez, on va en faire 10 000 ! On va faire  deux boucles : 7000 reviews d'utilisateurs, et 3000 reviews qui seront des réponses à d'autres reviews.
 
 ```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Review;
+use App\Repository\RestaurantRepository;
+use App\Repository\ReviewRepository;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+use Faker\Factory;
+
+class ReviewFixtures extends Fixture implements DependentFixtureInterface
+{
+    private $restaurantRepository;
+    private $reviewRepository;
+
+    public function __construct(RestaurantRepository $restaurantRepository, ReviewRepository $reviewRepository) {
+        $this->restaurantRepository = $restaurantRepository;
+        $this->reviewRepository = $reviewRepository;
+    }
+
+    public function load(ObjectManager $manager)
+    {
+
+        $faker = Factory::create('fr_FR');
+
+        /**
+         * On créée 7000 reviews initiales
+         */
+        for ($i=0; $i<7000; $i++) {
+            $review = new Review();
+            $review->setMessage( $faker->text(800) );
+            $review->setRating( rand(0,5) );
+            $review->setRestaurant( $this->restaurantRepository->find(rand(1, 1000)) );
+            $manager->persist($review);
+        }
+
+        /**
+         * On les enregistre en DB
+         */
+        $manager->flush();
+
+
+        /**
+         * On créée 3000 reviews enfants (dont le parent est une des review initiales)
+         */
+        for ($i=0; $i<3000; $i++) {
+            $review = new Review();
+            $review->setMessage( $faker->text(800) );
+            $review->setRating( rand(0,5) );
+            $review->setParent( $this->reviewRepository->find(rand(1, 7000)) ); // On cherche un ID entre 1 et 7000 (un commentaire initial)
+            $review->setRestaurant( $review->getParent()->getRestaurant() ); // On récupère le restaurant de la review parente
+            $manager->persist($review);
+
+        }
+
+        // $manager->persist($product);
+
+        $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+        return array(
+            RestaurantFixtures::class,
+        );
+    }
+}
 ```
 
+Ouf ! Exécutons enfin toutes ces fixtures. Pour cela, nous avons besoin de vider la base de données et de la re-remplir afin d'avoir des données propres. Voici les commandes à exécuter à la suite à chaque fois que vous chargerez des fixtures dorénavant :
 
-- Créez des "fixtures" pour créer des données basiques dans votre base de données. Quelques liens :
-  - [Fixtures: Seeding Dummy Data!](https://symfonycasts.com/screencast/symfony-doctrine/fixtures)
-  - [DoctrineFixturesBundle](https://symfony.com/doc/2.0/bundles/DoctrineFixturesBundle/index.html)
-- Utilisez Faker pour créer une centaine de restaurants dans une dizaine de villes différentes. Quelques liens :
-  - [Création de fixtures aléatoires - Faker](https://blog.dev-web.io/2018/01/20/symfony-4-creation-de-fixtures-aleatoires-faker/)
-  - [fzaninotto/faker](https://github.com/fzaninotto/Faker)
-- Affichez la liste de tous les restaurants en page d'accueil
-- Ensuite, affichez plutôt les 10 derniers restaurants créés. Il faudra chercher sur Google comment faire une requête personnalisée ("custom query") dans Symfony.
-- Créez une méthode `getReviewsAverage` dans la classe `Restaurant` qui retourne la moyenne des notes d'un restaurant
-- Grâce à getReviewsMean, affichez la moyenne de chaque restaurant sur la page d'accueil
+```bash
+# Suppression du schéma de bdd pour Doctrine
+bin/console doc:schema:drop --force
 
+# Création du schéma de bdd pour Doctrine
+bin/console doc:schema:create
 
-
-## Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs
+# Création des fixtures (validation automatique avec --no-interaction)
+bin/console doc:fixtures:load --no-interaction
+```
