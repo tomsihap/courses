@@ -35,6 +35,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
     - [Gestion des dépendances entre fixtures](#gestion-des-d%c3%a9pendances-entre-fixtures)
     - [Créer des fixtures !](#cr%c3%a9er-des-fixtures)
     - [Afficher les restaurants en page d'accueil](#afficher-les-restaurants-en-page-daccueil)
+    - [Afficher les 10 derniers restaurants créés](#afficher-les-10-derniers-restaurants-cr%c3%a9%c3%a9s)
 
 ## Exercice 1 - Créez le MLD
 D'après le brief du client, voici le MLD qui a été décidé :
@@ -968,3 +969,106 @@ Modifiez le Twig correspondant `app/index.html.twig` :
 ```
 
 Bien sûr, à vous d'adapter tout ce code avec du CSS ou Bootstrap !
+
+### Afficher les 10 derniers restaurants créés
+
+Comme on a vu plus haut, pour afficher tous les élements, la méthode `findAll()` du repository existe déjà et fait le job pour nous. Dès que nous avons des requêtes un peu plus complexes (ici : trier par `created_at` descendant puis prendre les 10 premiers résultats), on va devoir ajouter une méthode au `RestaurantRepository` qui fera ce travail.
+
+Pour commencer, trouvons la requête en MySQL :
+
+```sql
+SELECT * FROM `restaurant` ORDER BY `created_at` DESC LIMIT 0, 10
+```
+
+Ensuite, ajoutons une méthode dans `RestaurantRepository.php`. Dans ce fichier, on trouve en commentaires 2 méthodes d'exemple sur lesquelles s'inspirer pour créer notre méthode !
+
+Observez bien les requêtes en commentaires et voyez comme il est facile de composer sa requête comme ça. Il s'agit du QueryBuilder de Doctrine.
+
+```php
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Restaurant;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Persistence\ManagerRegistry;
+
+/**
+ * @method Restaurant|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Restaurant|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Restaurant[]    findAll()
+ * @method Restaurant[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class RestaurantRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Restaurant::class);
+    }
+
+    public function findLastTenElements() {
+        return $this->createQueryBuilder('r')
+            ->orderBy('r.createdAt', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
+    // /**
+    //  * @return Restaurant[] Returns an array of Restaurant objects
+    //  */
+    /*
+    public function findByExampleField($value)
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.exampleField = :val')
+            ->setParameter('val', $value)
+            ->orderBy('r.id', 'ASC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+    */
+
+    /*
+    public function findOneBySomeField($value): ?Restaurant
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.exampleField = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+    */
+}
+```
+
+Modifiez votre `AppController.php` de sorte à ne plus utiliser `findAll()` mais bien `findLastTenElements()` que nous venons de créer  :
+
+```php
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Restaurant;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
+
+class AppController extends AbstractController
+{
+    /**
+     * @Route("/", name="app_index", methods={"GET"})
+     */
+    public function index()
+    {
+        return $this->render('app/index.html.twig', [
+            'restaurants' => $this->getDoctrine()->getRepository(Restaurant::class)->findLastTenElements(),
+        ]);
+    }
+}
+```
+
+Et voilà comment utiliser une requête SQL personnalisée dans Symfony !
