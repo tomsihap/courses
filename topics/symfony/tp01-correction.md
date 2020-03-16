@@ -279,12 +279,14 @@ Property name | Field type | Field length | Nullable ? |
 `zipcode` | `string` | `15` | `no` |
 
 #### 3. RestaurantPicture: `bin/console make:entity RestaurantPicture`
+
 Property name | Field type | Field length | Nullable ? |
 ---------|----------|---------|---------|
 
 > On ne remplit rien pour le moment ! On créée l'entité vide. On la remplira lorsqu'on gèrera l'upload d'images.
 
 #### 4. Review: `bin/console make:entity Review`
+
 Property name | Field type | Field length | Nullable ? |
 ---------|----------|---------|---------|
 `message` | `text` | | `yes` |
