@@ -93,7 +93,7 @@ REVIEW | `N:1` | REVIEW
 
 ## Exercice 2 - Créez le projet Symfony
 ```
-composer create-project symfony/website-skeleton:^4.4 notaresto
+composer create-project symfony/website-skeleton notaresto ^4.4.0
 ```
 
 ## Exercice 3 - Faites la liste des routes utiles au projet et leurs rôles
@@ -529,7 +529,6 @@ class RestaurantController extends AbstractController
     }
 }
 ```
-
 
 ## Exercice 9 - Faire la page d'accueil
 ## Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs
