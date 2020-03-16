@@ -33,6 +33,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
     - [Exemple: RestaurantController](#exemple-restaurantcontroller)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
     - [Gestion des dépendances entre fixtures](#gestion-des-d%c3%a9pendances-entre-fixtures)
+    - [Créer des fixtures !](#cr%c3%a9er-des-fixtures)
   - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
 
 ## Exercice 1 - Créez le MLD
@@ -664,6 +665,73 @@ class ReviewFixtures extends Fixture implements DependentFixtureInterface
     }
 }
 ```
+
+Enfin, disons à RestaurantFixtures qu'il a besoin de CityFixtures pour fonctionner :
+
+`RestaurantFixtures.php` :
+
+```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\City;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+
+class RestaurantFixtures extends Fixture implements DependentFixtureInterface
+{
+    public function load(ObjectManager $manager)
+    {
+        // $product = new Product();
+        // $manager->persist($product);
+
+        $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+        return array(
+            City::class,
+        );
+    }
+}
+```
+
+### Créer des fixtures !
+
+Ça y est ! Créons nos fixtures dans l'ordre: d'abord des City, puis des Restaurant, puis des Review.
+
+`CityFixtures.php` :
+
+```php
+class CityFixtures extends Fixture
+{
+    public function load(ObjectManager $manager)
+    {
+
+        for ($i = 0; $i < 1000; $i++) {
+            $city = new City();
+            $city->setName("Lyon");
+            $city->setZipcode("69001");
+        }
+
+        $manager->flush();
+    }
+}
+```
+
+`RestaurantFixtures.php` :
+
+```php
+```
+
+`ReviewFixtures.php` :
+
+```php
+```
+
 
 - Créez des "fixtures" pour créer des données basiques dans votre base de données. Quelques liens :
   - [Fixtures: Seeding Dummy Data!](https://symfonycasts.com/screencast/symfony-doctrine/fixtures)
