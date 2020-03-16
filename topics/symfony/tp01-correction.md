@@ -4,15 +4,35 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
 - [Cours Symfony 4.4 LTS : TP - CORRECTIONS](#cours-symfony-44-lts--tp---corrections)
   - [Exercice 1 - Créez le MLD](#exercice-1---cr%c3%a9ez-le-mld)
   - [Exercice 2 - Créez le projet Symfony](#exercice-2---cr%c3%a9ez-le-projet-symfony)
-- [Répondre "1" à la question](#r%c3%a9pondre-%221%22-%c3%a0-la-question)
-- [Création de la base de données](#cr%c3%a9ation-de-la-base-de-donn%c3%a9es)
-- [Création des premières migrations](#cr%c3%a9ation-des-premi%c3%a8res-migrations)
-- [Exécution des premières migrations](#ex%c3%a9cution-des-premi%c3%a8res-migrations)
-- [Par la suite, lorsque vous ferez d'autres migrations :](#par-la-suite-lorsque-vous-ferez-dautres-migrations)
-- [1. On teste si des migrations existent en essayant de les exécuter](#1-on-teste-si-des-migrations-existent-en-essayant-de-les-ex%c3%a9cuter)
-- [2. On créée les nouvelles migrations](#2-on-cr%c3%a9%c3%a9e-les-nouvelles-migrations)
-- [3. On relance l'exécution de migrations](#3-on-relance-lex%c3%a9cution-de-migrations)
+  - [Exercice 3 - Faites la liste des routes utiles au projet et leurs rôles](#exercice-3---faites-la-liste-des-routes-utiles-au-projet-et-leurs-r%c3%b4les)
+  - [Exercice 4 - Configurer le projet](#exercice-4---configurer-le-projet)
+    - [Ajouter le projet à Git](#ajouter-le-projet-%c3%a0-git)
+      - [SANS Github Desktop](#sans-github-desktop)
+        - [CRÉER LE PROJET ET FAIRE DES COMMIT/PUSH](#cr%c3%89er-le-projet-et-faire-des-commitpush)
+          - [a. Créer le projet sur Github](#a-cr%c3%a9er-le-projet-sur-github)
+          - [b. Ajouter notre projet au repository Github](#b-ajouter-notre-projet-au-repository-github)
+          - [c. Faire un commit pour initialiser le projet](#c-faire-un-commit-pour-initialiser-le-projet)
+          - [d. Faire des commits/push pendant le projet](#d-faire-des-commitspush-pendant-le-projet)
+        - [RÉCUPÉRER LE PROJET](#r%c3%89cup%c3%89rer-le-projet)
+      - [AVEC Github Desktop](#avec-github-desktop)
+        - [CRÉER LE PROJET ET FAIRE DES COMMIT/PUSH](#cr%c3%89er-le-projet-et-faire-des-commitpush-1)
+        - [RÉCUPÉRER LE PROJET](#r%c3%89cup%c3%89rer-le-projet-1)
+  - [Exercice 5 - Configurez le projet Symfony](#exercice-5---configurez-le-projet-symfony)
+  - [Exercice 6 - Créer les modèles](#exercice-6---cr%c3%a9er-les-mod%c3%a8les)
+    - [Création des Model](#cr%c3%a9ation-des-model)
+      - [1. Restaurant: `bin/console make:entity Restaurant`](#1-restaurant-binconsole-makeentity-restaurant)
+      - [2. City: `bin/console make:entity City`](#2-city-binconsole-makeentity-city)
+      - [3. RestaurantPicture: `bin/console make:entity RestaurantPicture`](#3-restaurantpicture-binconsole-makeentity-restaurantpicture)
+      - [4. Review: `bin/console make:entity Review`](#4-review-binconsole-makeentity-review)
+    - [Création des relations](#cr%c3%a9ation-des-relations)
+      - [Description des questions d'une relation](#description-des-questions-dune-relation)
+      - [Exemple](#exemple)
+    - [Gérer les champs CreatedAt](#g%c3%a9rer-les-champs-createdat)
+  - [Exercice 7 - Faire les migrations](#exercice-7---faire-les-migrations)
+  - [Exercice 8 - Créer les controllers et les routes](#exercice-8---cr%c3%a9er-les-controllers-et-les-routes)
+    - [Exemple: RestaurantController](#exemple-restaurantcontroller)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
+    - [Gestion des dépendances entre fixtures](#gestion-des-d%c3%a9pendances-entre-fixtures)
   - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
 
 ## Exercice 1 - Créez le MLD
@@ -75,7 +95,8 @@ REVIEW | `N:1` | REVIEW
 
 ## Exercice 2 - Créez le projet Symfony
 ```
-symfony new notaresto --full --version=lts```
+symfony new notaresto --full --version=lts
+```
 
 ## Exercice 3 - Faites la liste des routes utiles au projet et leurs rôles
 ```
@@ -542,4 +563,119 @@ class RestaurantController extends AbstractController
 ```
 
 ## Exercice 9 - Faire la page d'accueil
+
+Les fixtures sont des fichiers qui vont générer des fausses données pour votre base de données.
+
+Il faut tout d'abord installer les fixtures dans le projet:
+
+```
+composer require orm-fixtures --dev 
+```
+
+Ensuite, créez les fichiers de fixtures pour chaque entité : nous  n'allons pas forcément toutes les utiliser mais elles seront prêtes ! Par convention, les fichiers de fixtures sont nommés ainsi : `NomDeLaClasseFixtures`. Par exemple: `RestaurantFixtures`.
+
+```
+php bin/console make:fixture RestaurantFixtures
+php bin/console make:fixture RestaurantPictureFixtures
+php bin/console make:fixture ReviewFixtures
+php bin/console make:fixture CityFixtures
+```
+
+### Gestion des dépendances entre fixtures
+
+> Documentation : https://symfony.com/doc/master/bundles/DoctrineFixturesBundle/index.html#loading-the-fixture-files-in-order
+
+Pour créer un Restaurant, nous avons besoin que des City existent. Pour créer des Review, nous avons besoin qu'un Restaurant existe. Pour créer des RestaurantPicture, nous avont besoin qu'un restaurant existe.
+
+Par défaut, Symfony va exécuter les fixtures dans l'ordre alphabétique : nous allons lui dire qu'il y a des dépendances entre elles (c'est à dire qu'il doit en exécuter certaines avant d'autres) - en effet, si les City ne sont pas créées, les restaurants ne pourront pas être créés !
+
+Voici l'ordre d'exécution des fixtures :
+
+Priorité | Fixture |
+---------|----------|
+ 1 | CityFixtures |
+ 2 | RestaurantFixtures |
+ 3 | RestaurantPictureFixtures |
+ 3 | ReviewFixtures |
+
+Nous allons indiquer tout  d'abord à `RestaurantPictureFixtures` et à `ReviewFixtures` que `RestaurantFixtures` doit être créé avant eux.
+
+Pour cela, on dit à la fixture d'implémenter l'interface `DependantFixtureInterface`, qui l'obligera à avoir la méthode `getDependancies()`. Modifiez les ainsi:
+
+
+`RestaurantPictureFixtures.php` :
+
+```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Restaurant;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+
+class RestaurantPictureFixtures extends Fixture implements DependentFixtureInterface
+{
+    public function load(ObjectManager $manager)
+    {
+        // $product = new Product();
+        // $manager->persist($product);
+
+        $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+        return array(
+            Restaurant::class,
+        );
+    }
+}
+```
+
+`ReviewFixtures.php` :
+
+```php
+<?php
+
+namespace App\DataFixtures;
+
+use App\Entity\Restaurant;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Common\Persistence\ObjectManager;
+
+class ReviewFixtures extends Fixture implements DependentFixtureInterface
+{
+    public function load(ObjectManager $manager)
+    {
+        // $product = new Product();
+        // $manager->persist($product);
+
+        $manager->flush();
+    }
+
+    public function getDependencies()
+    {
+        return array(
+            Restaurant::class,
+        );
+    }
+}
+```
+
+- Créez des "fixtures" pour créer des données basiques dans votre base de données. Quelques liens :
+  - [Fixtures: Seeding Dummy Data!](https://symfonycasts.com/screencast/symfony-doctrine/fixtures)
+  - [DoctrineFixturesBundle](https://symfony.com/doc/2.0/bundles/DoctrineFixturesBundle/index.html)
+- Utilisez Faker pour créer une centaine de restaurants dans une dizaine de villes différentes. Quelques liens :
+  - [Création de fixtures aléatoires - Faker](https://blog.dev-web.io/2018/01/20/symfony-4-creation-de-fixtures-aleatoires-faker/)
+  - [fzaninotto/faker](https://github.com/fzaninotto/Faker)
+- Affichez la liste de tous les restaurants en page d'accueil
+- Ensuite, affichez plutôt les 10 derniers restaurants créés. Il faudra chercher sur Google comment faire une requête personnalisée ("custom query") dans Symfony.
+- Créez une méthode `getReviewsAverage` dans la classe `Restaurant` qui retourne la moyenne des notes d'un restaurant
+- Grâce à getReviewsMean, affichez la moyenne de chaque restaurant sur la page d'accueil
+
+
+
 ## Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs
