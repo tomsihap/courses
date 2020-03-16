@@ -36,6 +36,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
     - [Créer des fixtures !](#cr%c3%a9er-des-fixtures)
     - [Afficher les restaurants en page d'accueil](#afficher-les-restaurants-en-page-daccueil)
     - [Afficher les 10 derniers restaurants créés](#afficher-les-10-derniers-restaurants-cr%c3%a9%c3%a9s)
+    - [Afficher la valeur moyenne de la note d'un restaurant](#afficher-la-valeur-moyenne-de-la-note-dun-restaurant)
 
 ## Exercice 1 - Créez le MLD
 D'après le brief du client, voici le MLD qui a été décidé :
@@ -947,15 +948,25 @@ class AppController extends AbstractController
 Modifiez le Twig correspondant `app/index.html.twig` :
 
 ```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AppController!{% endblock %}
+
+{% block body %}
+
     <ul>
         {% for restaurant in restaurants %}
             <li>
-                {{ restaurant.name }}  <br>
+                {{ restaurant.name }}<br>
                 <small>{{ restaurant.description }}</small>
             </li>
         {% endfor %}
 
     </ul>
+
+
+{% endblock %}
+
 ```
 
 Bien sûr, à vous d'adapter tout ce code avec du CSS ou Bootstrap !
@@ -1062,3 +1073,56 @@ class AppController extends AbstractController
 ```
 
 Et voilà comment utiliser une requête SQL personnalisée dans Symfony !
+
+### Afficher la valeur moyenne de la note d'un restaurant
+
+On souhaiterait, dans twig, accéder à quelque chose comme ça :
+```
+{{ restaurant.averageRating }}
+```
+
+En fait, dans Twig, quand on fait `{{ restaurant.name }}`,  `{{ restaurant.description }}`, ce qu'il se passe, c'est que Twig va chercher respectivement `$restaurant->getName()` et `$restaurant->getDescription()`.
+
+Donc si je souhaite avoir quelque chose comme `{{ restaurant.averageRating }}` qui me retourne la note moyenne, je dois créer... `$restaurant->getAverageRating()` dans `Restaurant.php` !
+
+Modifions `Restaurant.php` et ajoutons la méthode suivante qui  calcule la  moyenne des reviews d'un restaurant (accessibles grâce à `$this->getReviews()` dans la classe elle-même) :
+
+```php
+public function getAverageRating() : float
+{
+
+    $sum = 0;
+    $total = 0;
+
+    foreach($this->getReviews() as $review) {
+        $sum += $review->getRating();
+        $total++;
+    }
+
+    return $sum/$total;
+}
+```
+
+Cette fonction ne fait que calculer la moyenne des reviews du restaurant. Et c'est tout ! On n'a plus qu'à modifier un peu notre Twig pour appeler cette  méthode :
+
+```html
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AppController!{% endblock %}
+
+{% block body %}
+
+    <ul>
+        {% for restaurant in restaurants %}
+            <li>
+                {{ restaurant.name }} (Moyenne de {{ restaurant.averageRating | number_format(2, ',') }})<br>
+                <small>{{ restaurant.description }}</small>
+            </li>
+        {% endfor %}
+
+    </ul>
+
+{% endblock %}
+```
+
+Enfin fini ! C'était un très gros chapitre. Prenez le temps de bien tout  avoir compris et maîtrisé avant de poursuivre !
