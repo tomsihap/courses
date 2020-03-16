@@ -27,6 +27,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
     - [Création des relations](#cr%c3%a9ation-des-relations)
       - [Description des questions d'une relation](#description-des-questions-dune-relation)
       - [Exemple](#exemple)
+    - [Gérer les champs CreatedAt](#g%c3%a9rer-les-champs-createdat)
   - [Exercice 7 - Faire les migrations](#exercice-7---faire-les-migrations)
   - [Exercice 8 - Créer les controllers et les routes](#exercice-8---cr%c3%a9er-les-controllers-et-les-routes)
     - [Exemple: RestaurantController](#exemple-restaurantcontroller)
@@ -415,6 +416,36 @@ Add another property? Enter the property name (or press <return> to stop adding 
 Success!
 
 Next: When you're ready, create a migration with make:migration
+```
+
+### Gérer les champs CreatedAt
+Comme nous avons des champs CreatedAt, il faut leur fournir une valeur  par défaut : c'est à dire que quand je créée un objet de type `Restaurant` par exemple, je dois ajouter une valeur par défaut à `createdAt`.
+
+Pour cela, dans `Restaurant.php` et `Review.php`, ajoutez dans la méthode `__construct()` la ligne suivante : 
+
+```php
+    $this->setCreatedAt(new \DateTime());
+```
+
+Vos fichiers doivent donc ressembler à ça :
+
+`Review.php`:
+```php
+public function __construct()
+{
+    $this->setCreatedAt(new \DateTime());
+    $this->childs = new ArrayCollection();
+}
+```
+
+`Restaurant.php`:
+```php
+public function __construct()
+{
+    $this->setCreatedAt(new \DateTime());
+    $this->restaurantPictures = new ArrayCollection();
+    $this->reviews = new ArrayCollection();
+}
 ```
 
 ## Exercice 7 - Faire les migrations
