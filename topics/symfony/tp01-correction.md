@@ -4,33 +4,14 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
 - [Cours Symfony 4.4 LTS : TP - CORRECTIONS](#cours-symfony-44-lts--tp---corrections)
   - [Exercice 1 - Créez le MLD](#exercice-1---cr%c3%a9ez-le-mld)
   - [Exercice 2 - Créez le projet Symfony](#exercice-2---cr%c3%a9ez-le-projet-symfony)
-  - [Exercice 3 - Faites la liste des routes utiles au projet et leurs rôles](#exercice-3---faites-la-liste-des-routes-utiles-au-projet-et-leurs-r%c3%b4les)
-  - [Exercice 4 - Configurer le projet](#exercice-4---configurer-le-projet)
-    - [Ajouter le projet à Git](#ajouter-le-projet-%c3%a0-git)
-      - [SANS Github Desktop](#sans-github-desktop)
-        - [CRÉER LE PROJET ET FAIRE DES COMMIT/PUSH](#cr%c3%89er-le-projet-et-faire-des-commitpush)
-          - [a. Créer le projet sur Github](#a-cr%c3%a9er-le-projet-sur-github)
-          - [b. Ajouter notre projet au repository Github](#b-ajouter-notre-projet-au-repository-github)
-          - [c. Faire un commit pour initialiser le projet](#c-faire-un-commit-pour-initialiser-le-projet)
-          - [d. Faire des commits/push pendant le projet](#d-faire-des-commitspush-pendant-le-projet)
-        - [RÉCUPÉRER LE PROJET](#r%c3%89cup%c3%89rer-le-projet)
-      - [AVEC Github Desktop](#avec-github-desktop)
-        - [CRÉER LE PROJET ET FAIRE DES COMMIT/PUSH](#cr%c3%89er-le-projet-et-faire-des-commitpush-1)
-        - [RÉCUPÉRER LE PROJET](#r%c3%89cup%c3%89rer-le-projet-1)
-  - [Exercice 5 - Configurez le projet Symfony](#exercice-5---configurez-le-projet-symfony)
-  - [Exercice 6 - Créer les modèles](#exercice-6---cr%c3%a9er-les-mod%c3%a8les)
-    - [Création des Model](#cr%c3%a9ation-des-model)
-      - [1. Restaurant: `bin/console make:entity Restaurant`](#1-restaurant-binconsole-makeentity-restaurant)
-      - [2. City: `bin/console make:entity City`](#2-city-binconsole-makeentity-city)
-      - [3. RestaurantPicture: `bin/console make:entity RestaurantPicture`](#3-restaurantpicture-binconsole-makeentity-restaurantpicture)
-      - [4. Review: `bin/console make:entity Review`](#4-review-binconsole-makeentity-review)
-    - [Création des relations](#cr%c3%a9ation-des-relations)
-      - [Description des questions d'une relation](#description-des-questions-dune-relation)
-      - [Exemple](#exemple)
-    - [Gérer les champs CreatedAt](#g%c3%a9rer-les-champs-createdat)
-  - [Exercice 7 - Faire les migrations](#exercice-7---faire-les-migrations)
-  - [Exercice 8 - Créer les controllers et les routes](#exercice-8---cr%c3%a9er-les-controllers-et-les-routes)
-    - [Exemple: RestaurantController](#exemple-restaurantcontroller)
+- [Répondre "1" à la question](#r%c3%a9pondre-%221%22-%c3%a0-la-question)
+- [Création de la base de données](#cr%c3%a9ation-de-la-base-de-donn%c3%a9es)
+- [Création des premières migrations](#cr%c3%a9ation-des-premi%c3%a8res-migrations)
+- [Exécution des premières migrations](#ex%c3%a9cution-des-premi%c3%a8res-migrations)
+- [Par la suite, lorsque vous ferez d'autres migrations :](#par-la-suite-lorsque-vous-ferez-dautres-migrations)
+- [1. On teste si des migrations existent en essayant de les exécuter](#1-on-teste-si-des-migrations-existent-en-essayant-de-les-ex%c3%a9cuter)
+- [2. On créée les nouvelles migrations](#2-on-cr%c3%a9%c3%a9e-les-nouvelles-migrations)
+- [3. On relance l'exécution de migrations](#3-on-relance-lex%c3%a9cution-de-migrations)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
   - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
 
@@ -94,8 +75,7 @@ REVIEW | `N:1` | REVIEW
 
 ## Exercice 2 - Créez le projet Symfony
 ```
-composer create-project symfony/website-skeleton notaresto ^4.4.0
-```
+symfony new notaresto --full --version=lts```
 
 ## Exercice 3 - Faites la liste des routes utiles au projet et leurs rôles
 ```
