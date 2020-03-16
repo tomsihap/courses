@@ -29,6 +29,7 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
       - [Exemple](#exemple)
   - [Exercice 7 - Faire les migrations](#exercice-7---faire-les-migrations)
   - [Exercice 8 - Créer les controllers et les routes](#exercice-8---cr%c3%a9er-les-controllers-et-les-routes)
+    - [Exemple: RestaurantController](#exemple-restaurantcontroller)
   - [Exercice 9 - Faire la page d'accueil](#exercice-9---faire-la-page-daccueil)
   - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
 
@@ -53,6 +54,7 @@ name
 description
 created_at
 city_id             # Quelle est la ville du restaurant ?
+user_id             # Qui a créé le restaurant ?
 
 CITY
 -----
@@ -102,6 +104,7 @@ GET     /logout                 all
 GET     /register               anonyme
 
 GET     /restaurants            all
+GET     /restaurant/new         restaurateur
 POST    /restaurant             restaurateur
 GET     /restaurant/{id}        all
 DELETE  /restaurant/{id}        restaurateur, modérateur
@@ -121,7 +124,6 @@ DELETE  /user/{id}        connecté
 GET     /user/{id}/edit   connecté
 POST    /user/{id}/edit   connecté
 
-
 GET     /cities           modérateur
 POST    /city             modérateur
 GET     /city/{id}        anonyme
@@ -140,6 +142,9 @@ POST    /restaurant_picture/{id}/edit   restaurateur, modérateur
 
 ## Exercice 4 - Configurer le projet
 ### Ajouter le projet à Git
+
+> Commits de correction :
+> - https://github.com/tomsihap/notaresto/commit/d730addd1212c6070e777e4effe801db82e88e09
 
 #### SANS Github Desktop
 ##### CRÉER LE PROJET ET FAIRE DES COMMIT/PUSH
@@ -246,6 +251,20 @@ Mais à quoi sert alors d'avoir un `.env` ? Imaginez que vous rajoutiez des lign
 > **Note en cas de CLONE du projet** : Si vous avez cloné le projet, n'oubliez pas de faire un `composer install` ! En effet, le dossier `vendor` n'est pas commité, il faut installer les dépendances après avoir cloné le projet.
 
 ## Exercice 6 - Créer les modèles
+
+> Commits de correction : (Entités)
+> - https://github.com/tomsihap/notaresto/commit/a354595066db9ddf820d729bf054a1355afa6bae
+> - https://github.com/tomsihap/notaresto/commit/d4396566bfb243210c635e31787d737a73e315f9
+> - https://github.com/tomsihap/notaresto/commit/46b6ee9bedc8ede61d307ddb61b7455cf5a0e4ee
+> - https://github.com/tomsihap/notaresto/commit/b4076228388ae0004d2bbce9816d57894bb6f633
+> - https://github.com/tomsihap/notaresto/commit/2905f4184edbd8aafad9d4d42e6b4cb7074b46c7
+
+> Commits de correction : (Relations)
+> - https://github.com/tomsihap/notaresto/commit/e7d73e087bbc3fb5fb7856f36da4ab43694d8c73
+> - https://github.com/tomsihap/notaresto/commit/2a2a594ed30302f409845bba41845eeae16bbcdc
+> - https://github.com/tomsihap/notaresto/commit/6e8e19fb55d6578ffbcc4174cf4bc45f7ca2beb8
+> -  https://github.com/tomsihap/notaresto/commit/a07e4a4554e4347c98d52890ba45d3199c55df12
+
 ### Création des Model
 Si vous suivez le MLD de la correction, les modèles à créer sont :
 - User
@@ -422,6 +441,13 @@ php bin/console doctrine:migrations:migrate
 ```
 
 ## Exercice 8 - Créer les controllers et les routes
+> Commits de correction:
+> - https://github.com/tomsihap/notaresto/commit/5d6ba5d591772f9f6d07cff37d23efaa35be9c17
+> - https://github.com/tomsihap/notaresto/commit/5a91d58f43a21f24bdd06bbdd81eaae318fe8bd6
+> - https://github.com/tomsihap/notaresto/commit/dcdaf405e56ae9edeef2611a73a658102f454ffb
+> - https://github.com/tomsihap/notaresto/commit/bab7403c9e2516f01c26ee1ddfe64e70e4b9da01
+
+
 La liste de routes à utiliser est celle de l'exercice 3. Créons les controllers :
 
 ```
@@ -432,6 +458,77 @@ bin/console make:controller ReviewController
 ```
 
 > **Note** : ces commandes crééent des vues par défaut dans `templates`. Vous n'aurez peut être pas besoin de toutes, n'oubliez pas de supprimer les dossiers à l'avenir si vous ne vous en servirez pas pour ne pas avoir de fichiers inutiles !
+
+> **Astuce** : Pensez à taper dans la console `bin/console debug:router` quand vous créez des routes pour vérifier si Symfony les a bien pris en compte ! Si elles n'aparaissent pas, c'est qu'elles sont mal placées dans la liste ou mal déclarées ou que deux routes ont le même nom. S'il y a une erreur dans la console, c'est une faute de frappe sans doute dans l'annotation.
+
+### Exemple: RestaurantController
+```php
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Restaurant;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Routing\Annotation\Route;
+
+class RestaurantController extends AbstractController
+{
+    /**
+     * Affiche la liste des restaurants
+     * @Route("/restaurants", name="restaurant_index", methods={"GET"})
+     */
+    public function index()
+    {
+        return $this->render('restaurant/index.html.twig', [
+            'controller_name' => 'RestaurantController',
+        ]);
+    }
+
+    /**
+     * Affiche un restaurant
+     * @Route("/restaurant/{restaurant}", name="restaurant_show", methods={"GET"})
+     * @param Restaurant $restaurant
+     */
+    public function show(Restaurant $restaurant)
+    {
+    }
+
+    /**
+     * Affiche le formulaire de création de restaurant
+     * @Route("/restaurant/new", name="restaurant_new", methods={"GET"})
+     */
+    public function new()
+    {
+    }
+
+    /**
+     * Traite la requête d'un formulaire de création de restaurant
+     * @Route("/restaurant", name="restaurant_create", methods={"POST"})
+     */
+    public function create()
+    {
+    }
+
+    /**
+     * Affiche le formulaire d'édition d'un restaurant (GET)
+     * Traite le formulaire d'édition d'un restaurant (POST)
+     * @Route("/restaurant/{restaurant}/edit", name="restaurant_edit", methods={"GET", "POST"})
+     * @param Restaurant $restaurant
+     */
+    public function edit(Restaurant $restaurant)
+    {
+    }
+
+    /**
+     * Supprime un restaurant
+     * @Route("/restaurant/{restaurant}", name="restaurant_delete", methods={"DELETE"})
+     * @param Restaurant $restaurant
+     */
+    public function delete(Restaurant $restaurant)
+    {
+    }
+}
+```
 
 
 ## Exercice 9 - Faire la page d'accueil
