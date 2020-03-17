@@ -37,6 +37,9 @@ L'énoncé peut être retrouvé ici : [Énoncé](tp01.md)
     - [Afficher les restaurants en page d'accueil](#afficher-les-restaurants-en-page-daccueil)
     - [Afficher les 10 derniers restaurants créés](#afficher-les-10-derniers-restaurants-cr%c3%a9%c3%a9s)
     - [Afficher la valeur moyenne de la note d'un restaurant](#afficher-la-valeur-moyenne-de-la-note-dun-restaurant)
+  - [Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs](#exercice-10---am%c3%a9liorer-la-requ%c3%aate-et-ne-retourner-que-les-10-meilleurs)
+    - [Requête SQL pour afficher les 10 meilleurs restaurants](#requ%c3%aate-sql-pour-afficher-les-10-meilleurs-restaurants)
+    - [Traduire dans le QueryBuilder](#traduire-dans-le-querybuilder)
 
 ## Exercice 1 - Créez le MLD
 D'après le brief du client, voici le MLD qui a été décidé :
@@ -1126,3 +1129,201 @@ Cette fonction ne fait que calculer la moyenne des reviews du restaurant. Et c'e
 ```
 
 Enfin fini ! C'était un très gros chapitre. Prenez le temps de bien tout  avoir compris et maîtrisé avant de poursuivre !
+
+## Exercice 10 - Améliorer la requête et ne retourner que les 10 meilleurs
+
+### Requête SQL pour afficher les 10 meilleurs restaurants
+La requête que nous voulons est en fait les 10 meilleures notes de restaurants, groupées par restaurants pour en faire la moyenne. Testez dans PHPMyAdmin vos requêtes.
+
+Commençons donc par la table `Review` :
+
+```sql
+SELECT * FROM review
+```
+
+Joignons les restaurants :
+
+```sql
+SELECT *
+FROM review
+INNER JOIN restaurant
+    ON review.restaurant_id = restaurant.id
+```
+
+Nous avons donc maintenant toutes les reviews avec le restaurant rattaché. Ce que nous voulons, c'est plutôt de grouper ces données par restaurant (donc une ligne par restaurant). Et de toutes ces données groupées, nous voulons la moyenne de la note (`review.rating`):
+
+```sql
+SELECT AVG(review.rating) as average, restaurant.id as restaurantId
+FROM review
+INNER JOIN restaurant
+    ON review.restaurant_id = restaurant.id
+GROUP BY restaurant_id
+```
+
+Et voilà ! Listons par ordre décroissant :
+
+```sql
+SELECT AVG(review.rating) as average, restaurant.id as restaurantId
+FROM review
+INNER JOIN restaurant
+    ON review.restaurant_id = restaurant.id
+GROUP BY restaurant_id
+ORDER BY moyenne DESC
+```
+
+Et ne gardons que les 10 meilleurs (les 10 premiers donc) :
+```sql
+SELECT AVG(review.rating) as averarge, restaurant.id as restaurantId
+FROM review
+INNER JOIN restaurant
+    ON review.restaurant_id = restaurant.id
+GROUP BY restaurant_id
+ORDER BY moyenne DESC
+LIMIT 0, 10
+```
+
+### Traduire dans le QueryBuilder
+
+Le QueryBuilder de Doctrine nous permet de construire des requêtes à la façon de Doctrine, directement dans le Repository.
+
+Ici, on part de la table `Review`, on va donc travailler dans le `ReviewRepository`. Encore une fois, inspirez vous des requêtes déjà préparées en commentaires dans le Repository :
+```php
+public function findByExampleField($value)
+{
+    return $this->createQueryBuilder('r')
+        ->andWhere('r.exampleField = :val')
+        ->setParameter('val', $value)
+        ->orderBy('r.id', 'ASC')
+        ->setMaxResults(10)
+        ->getQuery()
+        ->getResult()
+    ;
+}
+```
+
+On comprend par exemple que pour ajouter un `WHERE`, on utilise `andWhere`. Un `ORDER BY`, on utilise `orderBy('champ', 'direction')`.
+
+Pour le reste, cherchez dans la documentation comment traduire les éléments manquants.
+
+Les éléments de notre requête sont :
+```sql
+SELECT AVG(review.rating) as average, restaurant.id as restaurantId
+FROM review
+INNER JOIN restaurant
+    ON review.restaurant_id = restaurant.id
+GROUP BY restaurant_id
+ORDER BY moyenne DESC
+LIMIT 0, 10
+```
+
+Voici la liste des éléments nécessaires avec leurs documentations :
+
+- SELECT d'une moyenne (AVG) https://stackoverflow.com/questions/20023426/symfony-doctrine-sum-and-avg-score-of-players/30553309
+- INNER JOIN de Restaurant https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/query-builder.html#join-clauses
+- GROUP BY par Restaurant https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/query-builder.html#group-by-and-having-clause
+- ORDER BY sur la moyenne dans le sens descendant https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/query-builder.html#order-by-clause
+- LIMIT des 10 premiers résultats https://www.doctrine-project.org/projects/doctrine-dbal/en/2.10/reference/query-builder.html#limit-clause
+
+En compilant toutes ces informations, on réussit à construire la requête suivante dans `ReviewRepository.php` :
+
+```php
+public function findBestTenRatings() {
+
+    return $this->createQueryBuilder('r')
+        ->select('AVG(r.rating) as average', 'restaurant.id as restaurantId')
+        ->innerJoin('r.restaurant', 'restaurant')
+        ->groupBy('restaurant')
+        ->orderBy('AVG(r.rating)', 'DESC')
+        ->setMaxResults(10)
+        ->getQuery()
+        ->getResult()
+        ;
+}
+```
+
+Si on teste ça, dans `AppController.php`, ajoutons un `dd()` avant le `return` pour tester notre nouvelle méthode. Attention, la méthode vient bien de `ReviewRepository` !
+
+```php
+/**
+ * @Route("/", name="app_index", methods={"GET"})
+ */
+public function index()
+{
+
+    dd(
+        $this->getDoctrine()->getRepository(Review::class)->findBestTenRatings()
+    );
+    
+    
+    return $this->render('app/index.html.twig', [
+        'restaurants' => $this->getDoctrine()->getRepository(Restaurant::class)->findLastTenElements(),
+    ]);
+}
+```
+
+En allant sur la page d'accueil, ça marche... presque ! En fait, il y a un petit problème : là où `$this->getDoctrine()->getRepository(Restaurant::class)->findLastTenElements()` nous retournait un array d'objets `Restaurant`, cette fois notre méthode nous retourne un array d'arrays pas très pratique à utiliser.
+
+En effet : Doctrine ne peut pas savoir qu'il doit nous retourner des restaurants avec en plus le champ "average", il nous retourne donc juste ce qu'on lui a demandé, c'est à dire les champs du `SELECT` de la requête.
+
+Ce que nous allons faire maintenant, c'est donc de faire une boucle sur ce résultat pour récupérer les objets `Restaurant` correspondant. Un petit détail d'optimisation cependant dans notre méthode. Elle nous retourne la  note moyenne. Mais nous allons créer  des objets Restaurant qui eux, ont déjà accès à leur  propre note moyenne. Retirons donc ce champ du `select`, nous n'avons besoin que des ID de restaurants ! Dans `ReviewRepository.php` :
+
+```php
+public function findBestTenRatings() {
+
+    return $this->createQueryBuilder('r')
+        ->select('restaurant.id as restaurantId')
+        ->innerJoin('r.restaurant', 'restaurant')
+        ->groupBy('restaurant')
+        ->orderBy('AVG(r.rating)', 'DESC')
+        ->setMaxResults(10)
+        ->getQuery()
+        ->getResult()
+        ;
+}
+```
+
+
+Maintenant dans `AppController.php`, faisons une boucle sur les données de `findBestTenRatings` pour créer des objects `Restaurant` :
+
+```php
+/**
+ * @Route("/", name="app_index", methods={"GET"})
+ */
+public function index()
+{
+
+    /**
+     * On récupère les données de notre nouvelle méthode
+     */
+    $tenBestRestaurantsId = $this->getDoctrine()->getRepository(Review::class)->findBestTenRatings();
+
+    $tenBestRestaurants = array_map(function($data) {
+        return $this->getDoctrine()->getRepository(Restaurant::class)->find($data['restaurantId']);
+    }, $tenBestRestaurantsId);
+
+    /**
+     * On prépare le futur array d'objets Restaurant
+     */
+    $tenBestRestaurants = [];
+
+    /**
+     * On boucle sur le tableau de données retourné par le ReviewRepository
+     */
+    foreach($tenBestRestaurantsId as $data) {
+        // Pour chaque élément on prend le `restaurantId` et on cherche l'objet Restaurant grace au RestaurantRepository :
+        $tenBestRestaurants[] = $this->getDoctrine()->getRepository(Restaurant::class)->find($data['restaurantId']);
+    }
+
+    return $this->render('app/index.html.twig', [
+        // Cette fois, on envoie à Twig notre nouveau tableau
+        'restaurants' => $tenBestRestaurants,
+    ]);
+}
+```
+
+Et voilà ! Une autre manière d'écrire le foreach qui est plus élégante, c'est `array_map`. C'est une fonction qui prend en paramètres une fonction anonyme et un array. La fonction anonyme est en fait ce qu'on va faire pour transformer le tableau passé en 2ème paramètres.
+```php
+$tenBestRestaurants = array_map(function($data) {
+    return $this->getDoctrine()->getRepository(Restaurant::class)->find($data['restaurantId']);
+}, $tenBestRestaurantsId);
+```
